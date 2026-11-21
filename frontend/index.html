@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideMatch — Nearby Driver Matching System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-layout">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">RideMatch</h1>
+                    <span class="brand-subtitle">Nearby Driver Matching</span>
+                </div>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="system-status-chip">
+                <span class="status-pulse-dot"></span>
+                <span class="status-text">SYSTEM ONLINE</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a href="#driver-search" class="nav-item" data-section="driver-search">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-label">Driver Search</span>
+                </a>
+                <a href="#driver-management" class="nav-item" data-section="driver-management">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Driver Management</span>
+                </a>
+                <a href="#ride-history" class="nav-item" data-section="ride-history">
+                    <span class="nav-icon">🕒</span>
+                    <span class="nav-label">Ride History</span>
+                </a>
+                <a href="#algorithm-insights" class="nav-item" data-section="algorithm-insights">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">Algorithm Insights</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer Info -->
+            <div class="sidebar-footer">
+                <div class="dsa-badge">
+                    <span class="dsa-badge-title">DSA Academic Project</span>
+                    <span class="dsa-badge-sub">Spatial Grid • Min-Heap • Hash</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- Global Top Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="mobileMenuToggle" class="mobile-menu-btn" aria-label="Toggle Navigation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <h2 class="header-heading">RideMatch Control Center</h2>
+                        <p class="header-sub">Algorithmic Simulation & Real-Time Driver Allocation</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="backend-status-pill" title="Architecture ready for Java + MySQL REST API">
+                        <span class="pill-dot"></span>
+                        <span class="pill-text">Mock Service (Java Ready)</span>
+                    </div>
+                    <button id="resetSimulationBtn" class="btn btn-secondary" title="Restore initial canonical dataset">
+                        <span class="btn-icon">↺</span> Reset Simulation
+                    </button>
+                </div>
+            </header>
+
+            <!-- SCROLLABLE CONTENT BODY -->
+            <div class="content-scrollable">
+
+                <!-- ============================================== -->
+                <!-- SECTION 1: DASHBOARD (MAIN OVERVIEW)          -->
+                <!-- ============================================== -->
+                <section id="section-dashboard" class="main-section">
+                    <!-- Statistics Row -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-blue">👥</div>
+                            <div class="stat-content">
+                                <span class="stat-label">Total Drivers</span>
+                                <span id="statTotalDrivers" class="stat-value">7</span>
+                                <span class="stat-footnote">Active in registry</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-green">🟢</div>
+                            <div class="stat-content">
+                                <span class="stat-label">Available Drivers</span>
+                                <span id="statAvailableDrivers" class="stat-value highlight-green">6</span>
+                                <span class="stat-footnote">Ready for dispatch</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-amber">🟠</div>
+                            <div class="stat-content">
+                                <span class="stat-label">Busy / Booked</span>
+                                <span id="statBusyDrivers" class="stat-value highlight-amber">1</span>
+                                <span class="stat-footnote">On active trip</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-teal">🚗</div>
+                            <div class="stat-content">
+                                <span class="stat-label">Active Rides</span>
+                                <span id="statActiveRides" class="stat-value highlight-teal">0</span>
+                                <span class="stat-footnote">Assigned in session</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Animation Progress (Hidden by default) -->
+                    <div id="searchAnimationContainer" class="search-animation-box hidden">
+                        <div class="search-animation-content">
+                            <div class="spinner-dot"></div>
+                            <span id="searchAnimationText" class="anim-step-text">Searching nearby cells...</span>
+                        </div>
+                        <div class="search-progress-track">
+                            <div id="searchProgressBar" class="search-progress-fill" style="width: 20%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Map Grid & Passenger Request Row -->
+                    <div class="dashboard-grid-row">
+                        <!-- Passenger Ride Request Card -->
+                        <div class="dashboard-card request-panel-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="card-icon">📍</span>
+                                    <h3 class="card-title">Passenger Ride Request</h3>
+                                </div>
+                                <span id="searchStatusBadge" class="header-badge"></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="pickupCellSelect" class="form-label">Select Pickup Location (Cell)</label>
+                                    <div class="select-wrapper">
+                                        <select id="pickupCellSelect" class="form-select"></select>
+                                    </div>
+                                    <span class="field-hint">Default pickup cell is <strong>H12 (City Center Hub)</strong></span>
+                                </div>
+
+                                <button id="findNearbyDriversBtn" class="btn btn-primary btn-block btn-lg">
+                                    <span class="btn-icon">⚡</span> Find Nearby Drivers
+                                </button>
+
+                                <!-- Live Search Metrics -->
+                                <div class="search-metrics-panel">
+                                    <h4 class="metrics-title">Spatial Query Diagnostics</h4>
+                                    <div class="metrics-grid">
+                                        <div class="metric-item">
+                                            <span class="metric-label">Cells Searched</span>
+                                            <span id="metricSearchedCells" class="metric-val">4</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Drivers Found</span>
+                                            <span id="metricTotalFound" class="metric-val">4</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Available</span>
+                                            <span id="metricAvailableFound" class="metric-val highlight-green">4</span>
+                                        </div>
+                                    </div>
+                                    <div class="searched-cells-wrapper">
+                                        <span class="searched-cells-label">Neighborhood Cells:</span>
+                                        <div id="searchedCellsList" class="cells-tags-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conceptual Urban Grid Visualizer -->
+                        <div class="dashboard-card grid-visualizer-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="card-icon">🗺️</span>
+                                    <h3 class="card-title">Conceptual Spatial Grid</h3>
+                                </div>
+                                <span class="header-badge badge-info">Interactive 2D Topology</span>
+                            </div>
+                            <div class="card-body">
+                                <div id="cityGridContainer" class="grid-canvas-container">
+                                    <!-- Rendered dynamically by GridVisualizer -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matching Results Row: Best Match & Nearby Candidates -->
+                    <div class="dashboard-grid-row match-results-row">
+                        <!-- Best Match Panel -->
+                        <div class="dashboard-card best-match-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="card-icon">🏆</span>
+                                    <h3 class="card-title">Algorithmic Best Match</h3>
+                                </div>
+                                <span class="header-badge badge-teal">Min-Heap Peek O(1)</span>
+                            </div>
+                            <div id="bestMatchCardContainer" class="card-body">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+
+                        <!-- Live Ride Assignment Status Panel -->
+                        <div class="dashboard-card ride-assignment-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="card-icon">📋</span>
+                                    <h3 class="card-title">Ride Assignment Status</h3>
+                                </div>
+                                <span class="header-badge badge-blue">Live Booking State</span>
+                            </div>
+                            <div id="rideAssignmentCard" class="card-body">
+                                <div class="empty-state-small">
+                                    <div class="empty-icon">🚗</div>
+                                    <h4>No Active Ride Assignment</h4>
+                                    <p>Select a pickup cell, find nearby drivers, and assign the best match to view live assignment details.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nearby Drivers Table -->
+                    <div class="dashboard-card full-width-card">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-icon">🚘</span>
+                                <h3 class="card-title">Nearby Drivers in Searched Neighborhood</h3>
+                            </div>
+                            <span class="header-badge badge-secondary">Filtered & Ranked by ETA</span>
+                        </div>
+                        <div class="card-body no-padding">
+                            <div id="nearbyDriversTableWrapper" class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Driver ID</th>
+                                            <th>Driver Name</th>
+                                            <th>Current Cell</th>
+                                            <th>ETA</th>
+                                            <th>Availability</th>
+                                            <th>Distance</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="nearbyDriversTableBody">
+                                        <!-- Dynamically generated rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="nearbyDriversEmptyState" class="empty-state-large hidden">
+                                <div class="empty-icon">🔍</div>
+                                <h4>No Drivers Found in Neighborhood</h4>
+                                <p>There are no drivers currently stationed in the searched geographical cells.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================== -->
+                <!-- SECTION 2: DEDICATED DRIVER SEARCH WORKBENCH   -->
+                <!-- ============================================== -->
+                <section id="section-driver-search" class="main-section hidden">
+                    <div class="section-hero">
+                        <div class="hero-content">
+                            <h2 class="section-title">Driver Search Workbench</h2>
+                            <p class="section-desc">Interactive execution of the multi-stage matching pipeline: Spatial Query → Driver Retrieval → Availability Pruning → Min-Heap Priority Queue Extraction.</p>
+                        </div>
+                    </div>
+
+                    <div class="workbench-control-card">
+                        <div class="workbench-form-inline">
+                            <div class="form-group flex-1">
+                                <label for="searchWorkbenchCellSelect" class="form-label">Pickup Location Cell</label>
+                                <select id="searchWorkbenchCellSelect" class="form-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">&nbsp;</label>
+                                <button id="workbenchRunSearchBtn" class="btn btn-primary btn-lg">
+                                    <span>⚡</span> Run Full Matching Pipeline
+                                </button>
+                            </div>
+                        </div>
+                        <div id="workbenchResultDetails" class="workbench-details-slot"></div>
+                    </div>
+
+                    <!-- 5-Step Pipeline Visualizer -->
+                    <div class="pipeline-visual-wrapper">
+                        <h3 class="pipeline-title">Algorithmic Matching Pipeline Architecture</h3>
+                        <div class="pipeline-steps-grid">
+                            <div class="pipeline-step-card">
+                                <div class="step-num">01</div>
+                                <h4 class="step-title">Spatial Partitioning</h4>
+                                <p class="step-text">Maps pickup cell coordinates to immediate neighborhood radius via spatial adjacency map.</p>
+                                <div class="step-badge">O(1) Adjacency</div>
+                            </div>
+                            <div class="pipeline-step-card">
+                                <div class="step-num">02</div>
+                                <h4 class="step-title">Cell Bucket Lookup</h4>
+                                <p class="step-text">Retrieves drivers stationed within target cells, avoiding city-wide linear scan.</p>
+                                <div class="step-badge">O(K • d) Lookup</div>
+                            </div>
+                            <div class="pipeline-step-card">
+                                <div class="step-num">03</div>
+                                <h4 class="step-title">Availability Filter</h4>
+                                <p class="step-text">Excludes BOOKED drivers (e.g., Driver 105 Dev). Preserves only dispatch-ready candidates.</p>
+                                <div class="step-badge">O(M) Pruning</div>
+                            </div>
+                            <div class="pipeline-step-card">
+                                <div class="step-num">04</div>
+                                <h4 class="step-title">Min-Heap Ranking</h4>
+                                <p class="step-text">Constructs binary min-heap keyed on driver ETA in minutes for optimal sorting.</p>
+                                <div class="step-badge">O(M) Heapify</div>
+                            </div>
+                            <div class="pipeline-step-card step-highlight">
+                                <div class="step-num">05</div>
+                                <h4 class="step-title">Best Match Selection</h4>
+                                <p class="step-text">Root driver extracted via peek/extract-min representing minimum ETA match.</p>
+                                <div class="step-badge badge-green">O(1) Best Match</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================== -->
+                <!-- SECTION 3: DRIVER MANAGEMENT                   -->
+                <!-- ============================================== -->
+                <section id="section-driver-management" class="main-section hidden">
+                    <div class="management-header-bar">
+                        <div>
+                            <h2 class="section-title">Driver Fleet Management</h2>
+                            <p class="section-desc">Manage all 7 fleet drivers, filter statuses, inspect ETAs, or add new test drivers.</p>
+                        </div>
+                        <button id="addDriverBtn" class="btn btn-primary">
+                            <span class="btn-icon">+</span> Add New Driver
+                        </button>
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div class="filter-toolbar">
+                        <div class="search-input-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="driverSearchInput" class="form-input" placeholder="Search by name, driver ID (#101), or cell...">
+                        </div>
+                        <div class="filter-dropdown-box">
+                            <label for="driverStatusFilter" class="filter-label">Status:</label>
+                            <select id="driverStatusFilter" class="form-select form-select-sm">
+                                <option value="ALL">All Statuses</option>
+                                <option value="AVAILABLE">Available Only</option>
+                                <option value="BOOKED">Booked Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Table -->
+                    <div class="dashboard-card full-width-card">
+                        <div class="card-body no-padding">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Driver Name</th>
+                                            <th>Cell</th>
+                                            <th>ETA</th>
+                                            <th>Status</th>
+                                            <th>Rating</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="driverManagementTableBody">
+                                        <!-- Rendered dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="driverManagementEmptyState" class="empty-state-large hidden">
+                                <div class="empty-icon">👥</div>
+                                <h4>No Drivers Match Your Query</h4>
+                                <p>Try clearing filters or search terms.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================== -->
+                <!-- SECTION 4: RIDE HISTORY                        -->
+                <!-- ============================================== -->
+                <section id="section-ride-history" class="main-section hidden">
+                    <div class="section-hero">
+                        <div class="hero-content">
+                            <h2 class="section-title">Simulated Ride History</h2>
+                            <p class="section-desc">Log of all rides booked during this simulation session. Cleared upon clicking Reset Simulation.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card full-width-card">
+                        <div class="card-body no-padding">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ride ID</th>
+                                            <th>Pickup Cell</th>
+                                            <th>Assigned Driver</th>
+                                            <th>Assigned ETA</th>
+                                            <th>Status</th>
+                                            <th>Booking Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rideHistoryTableBody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="rideHistoryEmptyState" class="empty-state-large">
+                                <div class="empty-icon">🕒</div>
+                                <h4>No Rides Booked Yet</h4>
+                                <p>Assign a driver from the Dashboard or Search view to see ride records appear here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================== -->
+                <!-- SECTION 5: ALGORITHM INSIGHTS (DSA DEEP DIVE)  -->
+                <!-- ============================================== -->
+                <section id="section-algorithm-insights" class="main-section hidden">
+                    <div class="section-hero">
+                        <div class="hero-content">
+                            <h2 class="section-title">Data Structures & Algorithm Insights</h2>
+                            <p class="section-desc">Academic breakdown of the computational principles powering RideMatch's nearby driver matching engine.</p>
+                        </div>
+                    </div>
+
+                    <!-- DSA Concept Cards Grid -->
+                    <div class="dsa-cards-grid">
+                        <!-- Concept A: Spatial Grid -->
+                        <div class="dsa-card">
+                            <div class="dsa-card-top">
+                                <span class="dsa-tag">Spatial Partitioning</span>
+                                <span class="complexity-pill">O(K) vs O(N)</span>
+                            </div>
+                            <h3 class="dsa-title">A. Spatial Grid & Cell Clustering</h3>
+                            <p class="dsa-text">
+                                In large cities with tens of thousands of drivers, performing a linear scan over all drivers has a complexity of <code>O(N)</code>.
+                                RideMatch divides geographic space into discrete cells (e.g., <strong>H11, H12, H13</strong>). When a passenger requests a ride, only the passenger's cell and immediate neighbor cells <code>(K cells)</code> are queried.
+                            </p>
+                            <div class="dsa-complexity-box">
+                                <div class="comp-row">
+                                    <span>Time Complexity:</span>
+                                    <strong>O(K • d)</strong> <small>(where d = drivers/cell)</small>
+                                </div>
+                                <div class="comp-row">
+                                    <span>Space Complexity:</span>
+                                    <strong>O(N)</strong> <small>(inverted index grid)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Concept B: Hash Table -->
+                        <div class="dsa-card">
+                            <div class="dsa-card-top">
+                                <span class="dsa-tag">Hash Indexing</span>
+                                <span class="complexity-pill">Expected O(1)</span>
+                            </div>
+                            <h3 class="dsa-title">B. Hash Table Driver Registry</h3>
+                            <p class="dsa-text">
+                                Driver records are stored in a key-value Hash Table indexed by <code>Driver ID</code>.
+                                When an assignment occurs or driver details are updated, the driver is located in <code>O(1)</code> average time rather than searching through an unsorted array in <code>O(N)</code>.
+                            </p>
+                            <div class="dsa-complexity-box">
+                                <div class="comp-row">
+                                    <span>Driver ID Lookup:</span>
+                                    <strong>O(1) average</strong>
+                                </div>
+                                <div class="comp-row">
+                                    <span>Status Update:</span>
+                                    <strong>O(1) average</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Concept C: Min-Heap / Priority Queue -->
+                        <div class="dsa-card">
+                            <div class="dsa-card-top">
+                                <span class="dsa-tag">Priority Queue</span>
+                                <span class="complexity-pill">O(log M) / O(1)</span>
+                            </div>
+                            <h3 class="dsa-title">C. Min-Heap / Priority Queue</h3>
+                            <p class="dsa-text">
+                                To select the driver with the minimum ETA, available candidates are inserted into a Binary Min-Heap where each parent node has an ETA less than or equal to its children.
+                                The root element is retrieved in <code>O(1)</code> time, guaranteeing the fastest possible match.
+                            </p>
+                            <div class="dsa-complexity-box">
+                                <div class="comp-row">
+                                    <span>Build Heap (Heapify):</span>
+                                    <strong>O(M)</strong>
+                                </div>
+                                <div class="comp-row">
+                                    <span>Peek Best Match:</span>
+                                    <strong>O(1)</strong>
+                                </div>
+                                <div class="comp-row">
+                                    <span>Extract Min:</span>
+                                    <strong>O(log M)</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Concept D: Graph & Dijkstra -->
+                        <div class="dsa-card">
+                            <div class="dsa-card-top">
+                                <span class="dsa-tag">Graph Theory</span>
+                                <span class="complexity-pill">O((V + E) log V)</span>
+                            </div>
+                            <h3 class="dsa-title">D. Graph & Dijkstra's Algorithm</h3>
+                            <p class="dsa-text">
+                                Real road networks are modeled as weighted directed graphs where intersections represent vertices <code>(V)</code> and road segments represent edges <code>(E)</code> with travel time weights.
+                                Dijkstra's algorithm with a priority queue determines the shortest driving path between cells.
+                            </p>
+                            <div class="dsa-complexity-box">
+                                <div class="comp-row">
+                                    <span>Shortest Path:</span>
+                                    <strong>O((V + E) log V)</strong>
+                                </div>
+                                <div class="comp-row">
+                                    <span>Graph Space:</span>
+                                    <strong>O(V + E)</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Min-Heap Interactive Visualizer -->
+                    <div class="dashboard-card full-width-card mt-4">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-icon">🌲</span>
+                                <h3 class="card-title">Live Min-Heap Inspection for Current Pickup Cell</h3>
+                            </div>
+                            <span class="header-badge badge-teal">Dynamic Memory State</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="liveHeapVisualizer" class="heap-visualizer-container">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Algorithm Complexity Comparison Table -->
+                    <div class="dashboard-card full-width-card mt-4">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-icon">📊</span>
+                                <h3 class="card-title">Comparative Complexity Analysis</h3>
+                            </div>
+                            <span class="header-badge badge-info">Algorithm Summary</span>
+                        </div>
+                        <div class="card-body no-padding">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Component / Task</th>
+                                            <th>Data Structure</th>
+                                            <th>Best Case</th>
+                                            <th>Average Case</th>
+                                            <th>Worst Case</th>
+                                            <th>Space Complexity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Driver ID Lookup</strong></td>
+                                            <td>Hash Table (Map)</td>
+                                            <td>O(1)</td>
+                                            <td>O(1)</td>
+                                            <td>O(N)</td>
+                                            <td>O(N)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Nearby Area Query</strong></td>
+                                            <td>Spatial Grid / Bucket Map</td>
+                                            <td>O(1)</td>
+                                            <td>O(K • d)</td>
+                                            <td>O(N)</td>
+                                            <td>O(N)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>ETA Min Ranking</strong></td>
+                                            <td>Binary Min-Heap</td>
+                                            <td>O(1) peek</td>
+                                            <td>O(log M) extract</td>
+                                            <td>O(log M)</td>
+                                            <td>O(M)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Road Route Traversal</strong></td>
+                                            <td>Weighted Graph (Dijkstra)</td>
+                                            <td>O(V log V)</td>
+                                            <td>O((V + E) log V)</td>
+                                            <td>O((V + E) log V)</td>
+                                            <td>O(V + E)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODALS                                         -->
+    <!-- ============================================== -->
+
+    <!-- Add Driver Modal -->
+    <div id="addDriverModal" class="app-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Demo Driver</h3>
+                <button class="modal-close-btn" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="addDriverForm">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newDriverId" class="form-label">Driver ID *</label>
+                            <input type="text" id="newDriverId" class="form-input" placeholder="e.g. 108" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newDriverName" class="form-label">Driver Name *</label>
+                            <input type="text" id="newDriverName" class="form-input" placeholder="e.g. Vikram" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newDriverCell" class="form-label">Stationed Cell *</label>
+                            <select id="newDriverCell" class="form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newDriverEta" class="form-label">ETA (Minutes) *</label>
+                            <input type="number" id="newDriverEta" class="form-input" min="1" max="60" placeholder="e.g. 4" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newDriverStatus" class="form-label">Initial Status</label>
+                            <select id="newDriverStatus" class="form-select">
+                                <option value="AVAILABLE" selected>AVAILABLE</option>
+                                <option value="BOOKED">BOOKED</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newDriverVehicle" class="form-label">Vehicle Info</label>
+                            <input type="text" id="newDriverVehicle" class="form-input" placeholder="e.g. Sedan • DL 08 Z 1122">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Driver</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Driver Modal -->
+    <div id="editDriverModal" class="app-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Driver <span id="editDriverIdDisplay"></span></h3>
+                <button class="modal-close-btn" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="editDriverForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editDriverName" class="form-label">Driver Name</label>
+                        <input type="text" id="editDriverName" class="form-input" required>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="editDriverCell" class="form-label">Stationed Cell</label>
+                            <select id="editDriverCell" class="form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDriverEta" class="form-label">ETA (Minutes)</label>
+                            <input type="number" id="editDriverEta" class="form-input" min="1" max="60" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="editDriverStatus" class="form-label">Availability Status</label>
+                            <select id="editDriverStatus" class="form-select">
+                                <option value="AVAILABLE">AVAILABLE</option>
+                                <option value="BOOKED">BOOKED</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDriverVehicle" class="form-label">Vehicle Info</label>
+                            <input type="text" id="editDriverVehicle" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Driver</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- SCRIPTS (Separated by Architectural Layers) -->
+    <script src="js/data.js"></script>
+    <script src="js/dsa.js"></script>
+    <script src="js/apiService.js"></script>
+    <script src="js/gridManager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
